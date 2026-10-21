@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "method": "SVM",
+  "classifier": "LinearSVC",
+  "seed": 42,
+  "scenarios": ["original_only", "with_synthetic"],
+  "features": {
+    "word_1_2": {"analyzer": "word", "ngram_range": [1, 2]},
+    "char_wb_3_5": {"analyzer": "char_wb", "ngram_range": [3, 5]}
+  },
+  "tfidf": {"min_df": 2, "max_features": 40000, "sublinear_tf": true, "lowercase": false, "norm": "l2", "use_idf": true, "smooth_idf": true},
+  "C_values": [0.1, 1.0, 10.0],
+  "svm": {"penalty": "l2", "loss": "squared_hinge", "dual": "auto", "tol": 0.0001, "max_iter": 10000, "class_weight": null, "fit_intercept": true, "intercept_scaling": 1},
+  "selection": {"primary": "f1_1", "secondary": "macro_f1", "feature_ties": ["word_1_2", "char_wb_3_5"], "C_ties": "ascending", "scenario_ties": ["original_only", "with_synthetic"]},
+  "positive_label": 1,
+  "label_order": [0, 1],
+  "upstream_environment": {"python": "3.14.3", "numpy": "2.4.4", "pandas": "3.0.2", "scikit-learn": "1.8.0", "matplotlib": "3.10.8", "joblib": "1.5.3"}
+}

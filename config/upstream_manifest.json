@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "repository": "https://github.com/atharikputra/JudiScope",
+  "commit": "d9c7feb47aeac1f2889e19c2cddc255525e358ef",
+  "raw_source_sha256": "6a31d1718093e45ad46b8083e94f64cc11f101dbe689b4428c0f5330bd0228e8",
+  "files": {
+    "komentar_cleaned.csv": {"path": "outputs/cleaning/komentar_cleaned.csv", "sha256": "5748b86c1d1d72c9e29023b8311e692f0fbebe3edc9fe556df6a5b4c75b3feb3"},
+    "komentar_synthetic_only.csv": {"path": "outputs/augmentation/komentar_synthetic_only.csv", "sha256": "4ac721c4a2aa5da53aae12ff0a177f5a9a384b5c387aa481839ed67cf3002c0c"},
+    "komentar_10000_with_synthetic.csv": {"path": "outputs/augmentation/komentar_10000_with_synthetic.csv", "sha256": "3624f73dc131499dd57fbc6195d593fb829fabba90af7a923b33944114dd8303"},
+    "original_split_manifest.csv": {"path": "outputs/bayesian/original_split_manifest.csv", "sha256": "1512e44e643cfbf666895fadcba550fd17111a1caef9584825adcbd83a0b0781"},
+    "cleaning_summary.json": {"path": "outputs/cleaning/cleaning_summary.json", "sha256": "de7ad78f1cac26390be482d5dd9e669ab467983e322d237b843c6bd6bc080211"},
+    "augmentation_summary.json": {"path": "outputs/augmentation/augmentation_summary.json", "sha256": "7f24d87535aeb6c9e447bf20b52c3ff945e5fd7310a90fc25801a97bc6499a0d"}
+  },
+  "counts": {"original": 8934, "synthetic": 1066, "combined": 10000},
+  "split_counts": {"train": 5360, "validation": 1787, "test": 1787},
+  "class_counts": {"train": {"0": 3610, "1": 1750}, "validation": {"0": 1203, "1": 584}, "test": {"0": 1203, "1": 584}}
+}

@@ -1,0 +1,9 @@
+# Actual offline execution environment. See docs/LINGKUNGAN.md for the
+# explicitly documented difference from Athar's scientific versions.
+numpy==1.26.4
+pandas==3.0.3
+scipy==1.17.1
+scikit-learn==1.4.2
+matplotlib==3.10.9
+joblib==1.5.3
+ipython==9.1.0
