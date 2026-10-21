@@ -22,7 +22,7 @@ def package_run(root, run_dir):
         path = (run_dir/record['path']).resolve()
         require(path.is_relative_to(run_dir), 'Path artefak di luar run.')
         require(path.stat().st_size == record['bytes'] and sha256_file(path) == record['sha256'], f"Artefak berubah: {record['path']}")
-    files = [*root.glob('*.py'), *root.glob('*.md'), *root.glob('*.txt'), root/'.gitignore', root/'.gitattributes', root/'svm_experiments.ipynb']
+    files = [*root.glob('*.py'), *root.glob('*.md'), *root.glob('*.txt'), root/'.gitignore', root/'.gitattributes', root/'svm_experiments.ipynb', root/'outputs/latest_run.json']
     for folder in ['scripts','config','docs','data']:
         files += [p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and not p.name.endswith('.tmp')]
     files += [p for p in run_dir.rglob('*') if p.is_file() and not p.name.endswith('.tmp')]
@@ -50,8 +50,11 @@ def package_run(root, run_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--run',required=True,type=Path)
+    parser.add_argument('--run',type=Path,help='Folder hasil. Default: run terakhir di outputs/latest_run.json.')
     args = parser.parse_args()
+    if args.run is None:
+        latest = json.loads((ROOT/'outputs/latest_run.json').read_text(encoding='utf-8'))
+        args.run = ROOT/latest['path']
     path = package_run(ROOT,args.run)
     print('Bundle terverifikasi:',path)
     print('SHA-256:',sha256_file(path))

@@ -78,7 +78,7 @@ if __name__ == '__main__':
     if not args.sequential:
         missing = [p for p in ['nbformat','nbclient','ipykernel','zmq'] if importlib.util.find_spec(p) is None]
         if missing:
-            raise SystemExit(f'Komponen Jupyter belum tersedia: {missing}. Pasang requirements-notebook.txt, atau gunakan --sequential dengan status eksekusi yang eksplisit.')
+            raise SystemExit(f'Komponen Jupyter belum tersedia: {missing}. Pasang requirements.txt, atau gunakan --sequential untuk menjalankan sel melalui IPython.')
     notebook = run_sequential(path) if args.sequential else run_kernel(path, root)
     print('Notebook selesai:',path.name)
     print('Mode:',notebook['metadata']['execution_mode'])

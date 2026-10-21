@@ -1,5 +1,4 @@
-# Actual offline execution environment. See docs/LINGKUNGAN.md for the
-# explicitly documented difference from Athar's scientific versions.
+# Python 3.11. Scientific versions used for the saved results.
 numpy==1.26.4
 pandas==3.0.3
 scipy==1.17.1
@@ -7,3 +6,10 @@ scikit-learn==1.4.2
 matplotlib==3.10.9
 joblib==1.5.3
 ipython==9.1.0
+
+# Notebook tools for Jupyter or VS Code.
+jupyterlab==4.4.0
+ipykernel==6.29.5
+nbformat==5.10.4
+nbclient==0.10.2
+nbconvert==7.16.6

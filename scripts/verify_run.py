@@ -134,9 +134,13 @@ def verify_run(root, run_dir, check_models=True, save=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--run', required=True, type=Path)
+    parser.add_argument('--run', type=Path, help='Folder hasil. Default: run terakhir di outputs/latest_run.json.')
     parser.add_argument('--root', default=ROOT, type=Path)
     parser.add_argument('--skip-models', action='store_true', help='Verifikasi tabel saja; tidak menyatakan model terverifikasi.')
     args = parser.parse_args()
+    if args.run is None:
+        latest = json.loads((args.root/'outputs/latest_run.json').read_text(encoding='utf-8'))
+        args.run = args.root/latest['path']
     result = verify_run(args.root, args.run, check_models=not args.skip_models, save=False)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(f"Hasil SVM valid: {result['run_id']} ({len(result['checks'])} pemeriksaan).")
+    print('Metrik, identitas test, dan model cocok.' if not args.skip_models else 'Tabel diperiksa; model dilewati.')

@@ -1,76 +1,84 @@
-# Metode TF-IDF + SVM
+# Cara kerja TF-IDF + SVM
 
-## Gambaran untuk pembaca
+## 1. Pakai input yang sama
 
-Komentar berbentuk teks, sedangkan SVM bekerja dengan angka. Karena itu, **TF-IDF adalah representasi input**, sementara **SVM adalah metode klasifikasi**. Model menerima `komentar_processed` dan mengeluarkan prediksi `0` atau `1`.
+Data diambil dari keluaran pipeline Athar di [JudiScope](https://github.com/atharikputra/JudiScope), commit `d9c7feb47aeac1f2889e19c2cddc255525e358ef`. Importer mengambil enam file preparation dari commit itu dan memeriksa hash pada `config/upstream_manifest.json`. Hasil classifier Athar tidak diimpor.
 
-Contoh alur: komentar asli diproses dengan cleaning Athar, dipotong menjadi kata/frasa atau potongan karakter, diberi bobot TF-IDF, lalu dimasukkan ke LinearSVC. Fungsi cleaning tidak memutuskan label; keputusan dipelajari classifier dari contoh fitting.
+Pipeline Athar menghasilkan **8.934 komentar asli bersih** dan **1.066 komentar sintetis**. Untuk menjalankan ulang preparation, gunakan commit tersebut dan jalankan notebook 01 lalu 02 di JudiScope. Repo SVM memakai ekspornya agar input kelompok tetap sama.
 
-## 1. Input dan cleaning
+Sumber awal menurut tim adalah [Kaggle yaemico/judionline](https://www.kaggle.com/datasets/yaemico/judionline). Lisensi, versi sumber, dan proses anotasinya belum terkonfirmasi. Komentar sintetis adalah buatan tim, bukan komentar YouTube baru.
 
-Semua anggota menggunakan snapshot sumber yang sama. Importer mengambil keluaran pipeline Athar dari commit yang tetap dan mengecek SHA-256, sehingga perbedaan metode tidak disebabkan oleh pergantian dataset atau split secara diam-diam.
+Teks input model adalah `komentar_processed`. Cleaning mengikuti Athar: normalisasi Unicode, lowercase, ganti URL menjadi `<url>`, hapus karakter tak terlihat, lalu rapikan spasi. Angka, simbol, dan emoji dipertahankan. Tidak ada stemming atau stopword tambahan.
 
-Cleaning menggunakan Unicode NFKC, menghapus karakter format tak terlihat, mengganti karakter kontrol menjadi spasi, mengubah huruf menjadi kecil, mengganti URL http/https/www dengan `<url>`, dan merapikan spasi. Angka, simbol, dan emoji dipertahankan. Tidak ada stemming atau penghapusan stopword tambahan.
+ID `source_row` dipakai untuk mencocokkan pembagian data. ID, metadata, flag sintetis, dan prediksi lama tidak menjadi fitur.
 
-`source_row` hanya ID untuk mencocokkan manifest; metadata, prediksi lama, jumlah duplikat, dan flag sintetis bukan fitur. Label kerja `0=nonjudi`, `1=promosi judi` tetap memiliki keterbatasan dokumentasi sumber.
+## 2. Pisahkan peran data
 
-## 2. TF-IDF: dari teks ke vektor
+| Bagian | Jumlah asli | Untuk apa? |
+| --- | ---: | --- |
+| Train | 5.360 | Melatih kandidat model |
+| Validation | 1.787 | Memilih fitur dan parameter C |
+| Test | 1.787 | Mengukur hasil akhir |
 
-TF mengukur kemunculan fitur dalam satu komentar. IDF memberi bobot lebih kecil pada fitur yang muncul di banyak komentar fitting. Konfigurasi memakai `sublinear_tf=True`, yaitu frekuensi positif diganti dengan `1 + log(tf)`, serta IDF yang dihaluskan. Vektor dinormalisasi L2.
+Pembagian mengikuti `original_split_manifest.csv`; memakai seed yang sama saja belum tentu menghasilkan anggota test yang sama.
 
-Dengan smoothing, IDF mengikuti `log((1+n)/(1+df)) + 1`, dengan `n` jumlah dokumen fitting dan `df` jumlah dokumen fitting yang mengandung fitur. Vocabulary dan nilai IDF hanya dipelajari dari bagian yang boleh digunakan untuk fit.
+Ada dua skenario SVM: **asli saja** dan **asli + sintetis**. Seluruh 1.066 sintetis hanya boleh masuk pelatihan. Validation dan test tetap memakai komentar asli yang sama pada kedua skenario.
 
-Dua kandidat representasi:
+## 3. Ubah teks menjadi TF-IDF
 
-| Representasi | Contoh konsep | Tujuan |
-| --- | --- | --- |
-| Word 1–2 gram | `review`, `mobil`, `review mobil` | Menangkap kata dan frasa pendek |
-| Character `char_wb` 3–5 gram | Potongan karakter di dalam batas kata | Menangkap pola tulisan dan bagian nama |
+SVM membutuhkan input angka. TF-IDF memberi bobot pada kata atau potongan karakter: fitur yang sering muncul dalam satu komentar mendapat bobot TF, sedangkan fitur yang terlalu umum di banyak komentar dikurangi bobotnya oleh IDF.
 
-Keduanya memakai `min_df=2`, `max_features=40000`, `lowercase=False` karena teks telah dibersihkan, dan normalisasi L2. Maksimum 40.000 bukan jaminan jumlah fitur aktual tepat 40.000. Matrik TF-IDF tetap sparse agar tidak memboroskan memori.
+Dua representasi dicoba:
 
-## 3. SVM dan parameter C
+- **Word 1–2 gram:** kata dan pasangan kata, misalnya `review`, `mobil`, `review mobil`.
+- **Character 3–5 gram (`char_wb`):** potongan karakter di dalam batas kata; berguna untuk mengenali bagian tulisan dan variasi ejaan.
 
-`LinearSVC` mempelajari batas keputusan linear pada ruang TF-IDF. Ia menyeimbangkan margin dan penalti kesalahan. C yang lebih besar memberi penalti kesalahan fitting lebih kuat, tetapi belum tentu memberi hasil validation yang lebih baik.
+Vocabulary dan IDF hanya dipelajari dari data pelatihan. Keduanya memakai `min_df=2`, maksimum 40.000 fitur, `sublinear_tf=True`, dan normalisasi L2. Pengaturan lengkap ada di `config/experiment_config.json`.
 
-Dicoba `C = 0.1, 1, 10` dengan penalti L2, `squared_hinge`, `dual='auto'`, toleransi `1e-4`, `max_iter=10000`, `class_weight=None`, dan `random_state=42`. Seluruh konfigurasi tersedia di `config/experiment_config.json`; nilai yang akhirnya dipakai ditentukan melalui validation.
+## 4. Latih dan pilih SVM
 
-Output `decision_function` adalah margin terhadap batas keputusan, bukan probabilitas. Pada urutan kelas `[0,1]`, skor positif berada pada sisi kelas `1`. Tidak dilakukan kalibrasi probabilitas atau tuning threshold. Prediksi tetap menggunakan keputusan bawaan classifier.
+`LinearSVC` mempelajari batas pemisah pada fitur TF-IDF. Parameter **C** mengatur besarnya penalti kesalahan pelatihan. C yang lebih besar belum tentu lebih baik pada data baru.
 
-## 4. Train, validation, dan test
+Dicoba `C = 0.1, 1, 10`. Dua representasi × tiga C × dua skenario menghasilkan **12 kandidat**. Setiap kandidat mendapat pipeline baru. Pilihan memakai **F1 kelas 1 pada validation**, kemudian macro-F1 jika seri. Aturan seri berikutnya ada di konfigurasi.
 
-| Bagian | Peran | Original only | With synthetic |
-| --- | --- | ---: | ---: |
-| Train | Melatih kandidat | 5.360 asli | 6.426 termasuk 1.066 sintetis |
-| Validation | Memilih fitur/C dan skenario | 1.787 asli | 1.787 asli yang sama |
-| Development | Refit setelah pilihan dikunci | 7.147 asli | 8.213 termasuk sintetis |
-| Test | Evaluasi akhir | 1.787 asli | 1.787 asli yang sama |
+Parameter dipilih dan dicatat sebelum test dibuka untuk evaluasi. Setelah itu, model dilatih ulang pada **train + validation**: 7.147 asli, atau 8.213 termasuk sintetis. Test tidak dipakai untuk fit atau memilih parameter.
 
-Terdapat 12 kandidat: dua representasi × tiga C × dua skenario. Skor utama seleksi adalah F1 positif, kemudian macro-F1. Pemecah seri dan preferensi skenario tertulis di konfigurasi. Hasil seleksi disimpan sebelum test. Pipeline final baru dilatih pada development; vocabulary/IDF ikut dipelajari ulang.
+Pada hasil yang disertakan, kedua skenario memilih **character 3–5 gram, C=10**. Skenario pilihan validation adalah `original_only`.
 
-Kedua skenario memakai test yang identik; sintetis tidak masuk validation/test. Pembacaan manifest dengan `source_row` wajib diikuti, bukan membuat split baru dengan seed yang kebetulan sama.
+## 5. Baca hasilnya
 
-## 5. Evaluasi
+Kelas positif adalah **1**. Confusion matrix memakai baris label rujukan dan kolom prediksi, urutan `[0, 1]`.
 
-Confusion matrix memakai baris label rujukan dan kolom prediksi, urutan `[0,1]`:
+| Istilah | Artinya |
+| --- | --- |
+| TP | Label 1 diprediksi 1 |
+| TN | Label 0 diprediksi 0 |
+| FP | Label 0 diprediksi 1 |
+| FN | Label 1 diprediksi 0 |
+| Accuracy | `(TP + TN) / semua komentar` |
+| Precision (1) | `TP / (TP + FP)` |
+| Recall (1) | `TP / (TP + FN)` |
+| F1 (1) | `2TP / (2TP + FP + FN)` |
+| Macro-F1 | Rata-rata F1 kelas 0 dan kelas 1 |
 
-| | Prediksi 0 | Prediksi 1 |
-| --- | --- | --- |
-| Label 0 | TN | FP |
-| Label 1 | FN | TP |
+Pembagian nol menghasilkan 0. `decision_score` adalah margin SVM, bukan probabilitas. Koefisien fitur menunjukkan asosiasi dengan keputusan model, bukan hubungan sebab-akibat.
 
-- Accuracy = `(TP+TN)/(TP+TN+FP+FN)`.
-- Precision positif = `TP/(TP+FP)`; berapa bagian prediksi promosi yang cocok dengan label positif.
-- Recall positif = `TP/(TP+FN)`; berapa bagian label promosi yang terdeteksi.
-- F1 positif = `2TP/(2TP+FP+FN)`.
-- Macro-F1 = rata-rata F1 kelas `0` dan `1`.
+## Yang diserahkan untuk paper
 
-Pembagian nol menghasilkan 0. Skor CSV memakai skala 0–1; tabel presentasi boleh memakai persen secara konsisten. Setiap skor dapat dihitung ulang melalui prediksi per record dan skrip verifikasi independen.
+Jalankan `python scripts/package_run.py` dari root repo. ZIP berisi semua hasil berikut:
 
-## Referensi implementasi
+| File | Isi |
+| --- | --- |
+| `test_metrics.csv` | Dua baris hasil SVM; metrik skala 0–1, confusion counts, dan waktu |
+| `validation_results.csv` | Semua 12 kandidat dan skor validation |
+| `test_predictions.csv` | Prediksi 1.787 test per skenario, total 3.574 baris |
+| `test_errors.csv` | Semua prediksi yang berbeda dari label rujukan |
+| `models/` | Dua pipeline TF-IDF + SVM tersimpan |
+| `experiment_summary.json` | Konfigurasi, versi library, identitas data, dan hasil |
+| Catatan JSON lainnya | Pilihan sebelum test, pemeriksaan hasil, dan hash file |
 
-- [TF-IDF scikit-learn](https://scikit-learn.org/1.4/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html).
-- [LinearSVC scikit-learn](https://scikit-learn.org/1.4/modules/generated/sklearn.svm.LinearSVC.html).
-- [Pipeline scikit-learn](https://scikit-learn.org/1.4/modules/generated/sklearn.pipeline.Pipeline.html).
+Prediksi dicocokkan lewat **`scenario` + `source_row`**. Kolom `label` adalah rujukan, `prediction` adalah keluaran model, dan `processed_text_sha256` membantu memastikan teksnya sama. Dua skenario tetap memakai 1.787 test unik, bukan 3.574 observasi independen.
 
-Referensi dataset dan keterbatasan anotasi harus tetap dibawa ke paper oleh anggota penulis; repo ini tidak mengisi metadata sumber yang belum diverifikasi.
+Untuk membandingkan dengan anggota lain, penulis paper perlu memastikan input, label, anggota test, dan definisi metrik sama. Waktu fit mencakup TF-IDF + SVM; waktu prediksi diukur terpisah. Waktu dari komputer atau versi library berbeda bukan benchmark kecepatan yang terkontrol.
+
+Model asli saja menghasilkan **TN=1.201, FP=2, FN=20, TP=564**. Dengan sintetis, FP bertambah menjadi 3; hitungan lain tetap. Perbedaan ini hanya deskriptif pada satu split. Label belum diaudit sepenuhnya, dan template atau kampanye mirip mungkin muncul di beberapa bagian data. Generalisasi ke video/periode baru belum diukur.

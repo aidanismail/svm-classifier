@@ -1,95 +1,86 @@
 # svm-classifier
 
-Klasifikasi komentar promosi judi online di YouTube menggunakan **TF-IDF dan Support Vector Machine (SVM)**. Dataset, cleaning, komentar sintetis, dan pembagian eksperimen mengikuti pipeline Athar yang dipatok versinya.
+Klasifikasi komentar promosi judi online di YouTube menggunakan **TF-IDF + SVM** untuk tugas UTS Machine Learning.
 
-Repo ini adalah kontribusi SVM untuk proyek UTS empat orang. Anggota lain mengerjakan ANN dan Naive Bayes; anggota keempat menyusun perbandingan serta paper. Repo ini menyediakan **hasil SVM dan bukti yang dapat diperiksa**, tanpa menjalankan perbandingan lintas-metode.
+Dataset dan pembagian train/validation/test mengikuti pipeline [JudiScope milik Athar](https://github.com/atharikputra/JudiScope). Repo ini hanya mengerjakan SVM. Hasilnya bisa diserahkan ke teman yang menyusun perbandingan dan paper.
+
+## Mulai dari sini
+
+Buka **[svm_experiments.ipynb](svm_experiments.ipynb)** untuk membaca langkah, kode, tabel, dan grafik yang sudah dijalankan. Penjelasan singkat istilah dan aturan eksperimen ada di [panduan metode](docs/METODE_SVM.md).
 
 ```text
-komentar_processed → TF-IDF → LinearSVC → prediksi → evaluasi
+Komentar bersih → TF-IDF → SVM → prediksi → evaluasi
 ```
 
-## Hasil run yang disertakan
+TF-IDF mengubah teks menjadi angka. SVM mempelajari cara membedakan dua kelas dari angka tersebut. Implementasinya memakai `LinearSVC` dari scikit-learn.
 
-Run: `20261021T140045Z_c5de4779`. Kedua skenario memakai **1.787 komentar test asli yang sama**: 1.203 label `0`, 584 label `1`.
+## Hasil
 
-| Skenario SVM | Accuracy | Precision (1) | Recall (1) | F1 (1) | Macro-F1 |
+Kedua skenario diuji pada **1.787 komentar asli yang sama**: 1.203 label `0` dan 584 label `1`.
+
+| Data saat pelatihan | Accuracy | Precision (1) | Recall (1) | F1 (1) | Macro-F1 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Original only | 98,77% | 99,65% | 96,58% | 98,09% | 98,59% |
-| With synthetic | 98,71% | 99,47% | 96,58% | 98,00% | 98,53% |
+| Asli saja | 98,77% | 99,65% | 96,58% | 98,09% | 98,59% |
+| Asli + sintetis | 98,71% | 99,47% | 96,58% | 98,00% | 98,53% |
 
-Keduanya dipilih melalui validation dengan TF-IDF karakter `char_wb` 3–5 gram dan `C=10`. Skenario pilihan validation adalah `original_only`. Tambahan sintetis menghasilkan satu false positive tambahan pada run ini; hasil tersebut tidak menunjukkan signifikansi statistik.
+Keduanya memilih TF-IDF karakter 3–5 gram dan `C=10` melalui validation. Skenario **asli saja** dipilih sebelum test. Pada run ini, penambahan data sintetis menghasilkan satu false positive tambahan; selisih kecil ini belum membuktikan perbedaan yang signifikan.
 
-Lihat [hasil lengkap](docs/HASIL_SVM.md), [tabel numerik](outputs/runs/20261021T140045Z_c5de4779/test_metrics.csv), dan [catatan verifikasi](outputs/runs/20261021T140045Z_c5de4779/verification.json).
+Angka lengkap ada di `test_metrics.csv` dalam folder run yang ditunjuk oleh [outputs/latest_run.json](outputs/latest_run.json). CSV memakai skala **0–1**, sedangkan tabel di atas memakai persen.
 
-Format notebook dan empat figure sudah diperiksa; inspeksi visual halaman notebook penuh masih terhalang browser sandbox. Lihat rincian status di [LINGKUNGAN.md](docs/LINGKUNGAN.md).
+## Jalankan sendiri
 
-![Confusion matrix kedua skenario](outputs/runs/20261021T140045Z_c5de4779/figures/confusion_matrices.png)
-
-**Status eksekusi:** seluruh 16 sel kode dijalankan berurutan melalui IPython dan pemeriksaan numerik/model lulus. Eksekusi melalui kernel Jupyter belum diverifikasi karena dependensi kernel tidak tersedia dalam sesi offline ini. Versi scientific berbeda dari upstream, termasuk scikit-learn **1.4.2**, dan direkam secara eksplisit di [LINGKUNGAN.md](docs/LINGKUNGAN.md). Tidak ada klaim bahwa run menggunakan scikit-learn 1.8.0.
-
-## Urutan baca untuk teman kelompok
-
-1. [METODE_SVM.md](docs/METODE_SVM.md): alur dan istilah metode.
-2. [svm_experiments.ipynb](svm_experiments.ipynb): kode, tabel, dan grafik yang sudah memiliki output.
-3. [HASIL_SVM.md](docs/HASIL_SVM.md): parameter terpilih dan pembahasan hasil SVM.
-4. [KONTRAK_HASIL.md](docs/KONTRAK_HASIL.md): definisi kolom, identitas dataset, dan berkas yang diserahkan kepada penulis paper.
-
-## Jalankan di Jupyter atau VS Code
-
-Gunakan Python 3.11 dan buka terminal dari root repo:
+Gunakan **Python 3.11**. Dari folder repo:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements-notebook.txt
+python -m pip install -r requirements.txt
 ```
 
-Sediakan clone upstream. Jika belum ada, clone sekali:
+Jika belum punya clone JudiScope di sebelah folder ini:
 
 ```powershell
 git clone https://github.com/atharikputra/JudiScope.git ../JudiScope
 ```
 
-Impor snapshot. Importer membaca commit yang dipatok, tanpa mengubah checkout upstream:
+Ambil dataset yang sama, lalu jalankan notebook:
 
 ```powershell
 python scripts/import_athar_data.py --source ../JudiScope
 python scripts/run_notebook.py
 ```
 
-Runner kernel memasang kernelspec hanya pada `.venv`, menjalankan notebook dari awal, dan menyimpan output. Alternatif: buka notebook di VS Code/Jupyter, pilih kernel `.venv`, restart kernel, lalu Run All. Notebook tidak membuat split baru.
+Atau buka notebook di VS Code/Jupyter, pilih kernel `.venv`, lalu **Run All**. Importer memeriksa versi dan hash file Athar; notebook tidak membuat split baru.
 
-Jika hanya scientific dependencies tersedia, fallback eksplisit berikut menjalankan kode dan mencatat mode `sequential_ipython`:
-
-```powershell
-python -m pip install -r requirements.txt
-python scripts/run_notebook.py --sequential
-```
-
-Fallback ini tidak mengklaim verifikasi kernel Jupyter. Instalasi scientific run disertakan dapat direproduksi lebih ketat dengan `requirements-executed.txt`.
-
-## Periksa hasil dan buat handoff
+## Untuk teman yang menulis paper
 
 ```powershell
-$svmRun = (Get-Content outputs/latest_run.json -Raw | ConvertFrom-Json).path
-python scripts/verify_run.py --run $svmRun
-python scripts/package_run.py --run $svmRun
-python predict.py --model "$svmRun/models/svm_original_only.joblib" --text "Videonya membantu, terima kasih"
+python scripts/verify_run.py
+python scripts/package_run.py
 ```
 
-Verifikasi menghitung ulang metrik dari prediksi ekspor, memeriksa ID/label/hash teks, keputusan validation, dan kedua model setelah dimuat ulang. `deliverables/svm_<run_id>.zip` membawa snapshot input, kode, notebook, model, prediksi/error, serta manifest hash untuk anggota penulis paper. File rinci/data/model dan ZIP tidak dimasukkan ke Git secara otomatis; reproduksi melalui perintah di atas atau serahkan bundle lokal.
+Perintah pertama memeriksa hasil run terakhir. Perintah kedua membuat **satu ZIP di `deliverables/`** berisi input, model, prediksi tiap komentar, tabel, grafik, dan catatan teknis. Serahkan ZIP itu ke penulis paper.
 
-## Dataset dan protokol bersama
+Di GitHub, hasil yang ditampilkan cukup dua CSV dan confusion matrix. Model, data, serta catatan teknis tetap tersedia secara lokal dan dalam ZIP; file-file tersebut tidak perlu memenuhi daftar file repo.
 
-- Sumber upstream: [JudiScope](https://github.com/atharikputra/JudiScope), commit `d9c7feb47aeac1f2889e19c2cddc255525e358ef`.
-- Sumber awal menurut tim: [Kaggle yaemico/judionline](https://www.kaggle.com/datasets/yaemico/judionline).
-- 8.934 asli bersih + 1.066 sintetis; 10.000 gabungan bukan 10.000 komentar YouTube asli.
-- Manifest asli: 5.360 train / 1.787 validation / 1.787 test, dicocokkan dengan `source_row`.
-- Sintetis masuk fitting saja; pilih konfigurasi melalui validation F1 kelas `1`, lalu macro-F1.
-- Final refit: 7.147 asli atau 8.213 termasuk sintetis. Test selalu asli.
+## Isi repo
 
-Hash dan aturan lengkap ada di [data/README.md](data/README.md) serta [konfigurasi upstream](config/upstream_manifest.json). Arti resmi label, metode anotasi, dan lisensi sumber belum terkonfirmasi. Hasil dibatasi pada split teks unik ini; pola template/video/kampanye yang mirip dapat melintasi split.
+| File/folder | Gunanya |
+| --- | --- |
+| `svm_experiments.ipynb` | Alur utama: data, training, evaluasi, dan pembahasan |
+| `docs/` | Panduan metode dan catatan lingkungan eksekusi |
+| `config/` | Parameter eksperimen serta identitas data Athar |
+| `scripts/` | Impor data, jalankan notebook, periksa hasil, buat ZIP |
+| `data_contract.py` | Memastikan input dan pembagian data sama dengan Athar |
+| `preprocessing.py` | Cleaning yang mengikuti pipeline Athar |
+| `experiment_io.py` | Menyimpan hasil dan identitas run |
+| `predict.py` | Mencoba model tersimpan dengan komentar baru |
+| `outputs/` | Hasil eksperimen; satu folder untuk setiap eksekusi |
 
-## Publikasi repository
+`.venv` adalah lingkungan Python lokal. File di `data/athar/`, model, cache, dan ZIP sengaja diabaikan Git.
 
-Tujuan yang disetujui adalah repository public `aidanismail/svm-classifier`. Setelah commit lokal tersedia dan jaringan GitHub dapat diakses, `./publish.ps1` memeriksa akun, menolak riwayat tujuan yang berbeda, membuat repository bila belum ada, lalu push tanpa force. Script tidak mempublikasikan bundle data/model secara otomatis.
+## Catatan hasil
+
+Notebook yang disertakan telah menjalankan seluruh 16 sel kode melalui IPython dan lulus pemeriksaan numerik serta model. Eksekusi melalui kernel Jupyter dan tampilan satu halaman notebook penuh belum diverifikasi pada lingkungan ini. Empat grafik sudah diperiksa terpisah. Rincian versi ada di [catatan lingkungan](docs/LINGKUNGAN.md).
+
+Label kerja adalah `0=nonjudi`, `1=promosi judi`; definisi label dan proses anotasi sumber belum terkonfirmasi. Hasil berlaku untuk split ini. Kemampuan pada video atau kampanye baru belum diuji.

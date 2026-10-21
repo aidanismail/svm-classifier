@@ -7,12 +7,15 @@ __pycache__/
 .cache/
 data/athar/
 deliverables/
-outputs/runs/*/models/
-outputs/runs/*/test_predictions.csv
-outputs/runs/*/test_errors.csv
-outputs/runs/*/selected_model_feature_weights.csv
-# Superseded development execution; the delivered run is outputs/latest_run.json.
-outputs/runs/20261021T135146Z_d9a0b810/
+
+# GitHub shows the main results. Full evidence stays in the handoff ZIP.
+outputs/runs/*/*
+!outputs/runs/*/test_metrics.csv
+!outputs/runs/*/validation_results.csv
+!outputs/runs/*/figures/
+outputs/runs/*/figures/*
+!outputs/runs/*/figures/confusion_matrices.png
+
 *.tmp
 .codex/
 .agents/
