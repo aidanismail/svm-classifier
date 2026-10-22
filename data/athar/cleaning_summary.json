@@ -1,0 +1,34 @@
+{
+  "source_file": "data_komentar_dengan_prediksi - data_komentar_dengan_prediksi(2).csv",
+  "source_sha256": "6a31d1718093e45ad46b8083e94f64cc11f101dbe689b4428c0f5330bd0228e8",
+  "source_rows": 10230,
+  "cleaned_rows": 8934,
+  "status_counts": {
+    "kept": 8934,
+    "duplicate": 1294,
+    "review_label_conflict": 2,
+    "review_invalid": 0
+  },
+  "conflicting_clean_text_groups": 1,
+  "labels_before": {
+    "0": 6021,
+    "1": 4209
+  },
+  "labels_after": {
+    "0": 6016,
+    "1": 2918
+  },
+  "cleaning": [
+    "NFKC",
+    "remove Unicode Cf",
+    "control characters to spaces",
+    "lowercase",
+    "http/https/www URL to <url>",
+    "collapse whitespace",
+    "quarantine invalid and conflicting labels",
+    "deduplicate processed text; keep first source record"
+  ],
+  "label_meaning_confirmed": false,
+  "annotation_method_known": false,
+  "training_performed": false
+}

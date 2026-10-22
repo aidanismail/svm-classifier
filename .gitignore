@@ -5,7 +5,6 @@ __pycache__/
 .env
 .env.*
 .cache/
-data/athar/
 deliverables/
 
 # GitHub shows the main results. Full evidence stays in the handoff ZIP.

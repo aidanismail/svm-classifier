@@ -1,0 +1,24 @@
+{
+  "target_rows": 10000,
+  "original_clean_rows": 8934,
+  "synthetic_rows": 1066,
+  "total_rows": 10000,
+  "label_counts": {
+    "0": 6016,
+    "1": 3984
+  },
+  "seed": 20261019,
+  "generator_version": "template_v1",
+  "method": "manually authored templates with deterministic random combinations and style variations",
+  "source_sha256": "6a31d1718093e45ad46b8083e94f64cc11f101dbe689b4428c0f5330bd0228e8",
+  "cleaned_csv_sha256": "5748b86c1d1d72c9e29023b8311e692f0fbebe3edc9fe556df6a5b4c75b3feb3",
+  "augmented_csv_sha256": "3624f73dc131499dd57fbc6195d593fb829fabba90af7a923b33944114dd8303",
+  "synthetic_label": 1,
+  "label_mapping_pending_source_confirmation": true,
+  "evaluation_policy": "Split original data first. Synthetic examples for training only; validation and test contain original data only. Compare to baseline without augmentation.",
+  "limitations": [
+    "synthetic examples are not independent observations",
+    "template and demo-name shortcuts may inflate performance",
+    "source label quality is not established"
+  ]
+}
