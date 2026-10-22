@@ -7,13 +7,20 @@ __pycache__/
 .cache/
 deliverables/
 
-# GitHub shows the main results. Full evidence stays in the handoff ZIP.
+# Include evaluation tables, reports, and figures; exclude other run artifacts.
 outputs/runs/*/*
-!outputs/runs/*/test_metrics.csv
-!outputs/runs/*/validation_results.csv
+!outputs/runs/*/*.csv
+!outputs/runs/*/*.json
 !outputs/runs/*/figures/
 outputs/runs/*/figures/*
-!outputs/runs/*/figures/confusion_matrices.png
+!outputs/runs/*/figures/*.png
+
+# Saved models remain local, including copies outside the run directory.
+outputs/runs/*/models/
+*.joblib
+*.pkl
+*.pickle
+*.zip
 
 *.tmp
 .codex/

@@ -81,7 +81,26 @@ python scripts/package_run.py
 
 `verify_run.py` memeriksa identitas data test, menghitung ulang metrik dari prediksi, dan memverifikasi model tersimpan. `package_run.py` membuat ZIP di `deliverables/` yang berisi kode, input, model, prediksi, tabel, grafik, dan metadata eksperimen.
 
-Repository menyertakan tabel metrik, hasil validation, dan confusion matrix. Dataset, model, prediksi terperinci, cache, dan ZIP diabaikan Git; artefak tersebut diperoleh dengan menjalankan eksperimen atau mengekstrak bundle hasil.
+Repository menyertakan snapshot dataset, seluruh CSV hasil evaluasi, laporan JSON, dan grafik. Model tersimpan, cache, serta ZIP tetap diabaikan Git. Model dapat diperoleh dengan menjalankan eksperimen atau mengekstrak bundle hasil.
+
+Hasil lengkap tersedia di [outputs/runs/20261021T144408Z_faf70e90/](outputs/runs/20261021T144408Z_faf70e90/):
+
+| File | Isi |
+| --- | --- |
+| `test_metrics.csv` | Accuracy, precision, recall, F1, macro-F1, dan confusion counts |
+| `test_predictions.csv` | Label rujukan, prediksi, dan margin SVM per komentar test |
+| `test_errors.csv` | Seluruh prediksi yang berbeda dari label rujukan |
+| `validation_results.csv` | Parameter dan skor validation seluruh kandidat |
+| `selected_model_feature_weights.csv` | Bobot fitur model pilihan untuk analisis |
+| `classification_reports.json` | Precision, recall, F1, dan support per kelas |
+| `experiment_summary.json` | Parameter, sumber data, versi library, dan ringkasan hasil |
+| `figures/` | Confusion matrix, metrik test, skor validation, dan bobot fitur |
+
+Untuk memeriksa tabel hasil tanpa memuat model lokal:
+
+```powershell
+python scripts/verify_run.py --skip-models
+```
 
 ### Prediksi komentar baru
 
